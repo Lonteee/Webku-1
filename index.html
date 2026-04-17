@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <title>Miner Pro App</title>
 
-<!-- Firebase COMPAT (WAJIB untuk HTML biasa) -->
+<!-- Firebase -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 
@@ -14,17 +14,43 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <style>
-body { background:#020617; color:white; font-family:Arial; padding:20px; }
-.card { background:#1e293b; padding:15px; border-radius:10px; margin:10px 0; }
-button { padding:10px; margin:5px; cursor:pointer; }
-input { padding:8px; margin:5px; }
+body {
+  background: radial-gradient(circle at top,#0f172a,#020617);
+  color:white;
+  font-family:Segoe UI;
+  padding:20px;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  border-radius:16px;
+  padding:20px;
+  margin:15px 0;
+  backdrop-filter: blur(12px);
+}
+
+button {
+  background: linear-gradient(135deg,#22c55e,#16a34a);
+  border:none;
+  padding:10px;
+  border-radius:10px;
+  color:white;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:10px;
+  border:none;
+}
 </style>
 
 </head>
 
 <body>
 
-<h2>⚡ Miner Reward App</h2>
+<h2>💎 Crypto Reward App</h2>
 
 <div id="login">
   <input id="email" placeholder="Email">
@@ -36,8 +62,8 @@ input { padding:8px; margin:5px; }
 <div id="app" style="display:none">
 
 <div class="card">
-User: <span id="user"></span><br>
-Balance: <span id="balance">0</span> Coins
+<h3>Portfolio</h3>
+<h1 id="balance">0</h1>
 </div>
 
 <div class="card">
@@ -48,62 +74,73 @@ Hashrate: <span id="hashrate">0</span>
 <button onclick="start()">Start</button> <button onclick="stop()">Stop</button>
 
 <div class="card">
+<h3>Withdraw</h3>
+<input id="wallet" placeholder="Wallet / No HP">
+<input id="amount" type="number" placeholder="Jumlah Coin">
+<button onclick="withdraw()">Withdraw</button>
+<p id="wdStatus"></p>
+</div>
+
+<div class="card">
 <h3>Leaderboard</h3>
 <div id="leaderboard"></div>
+</div>
+
+<!-- Admin -->
+
+<div id="adminPanel" style="display:none">
+<div class="card">
+<h3>Admin Panel</h3>
+<div id="withdrawList"></div>
+</div>
 </div>
 
 </div>
 
 <script>
 
-// 🔥 FIREBASE CONFIG
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDfcLi_OyL9lV50tQUEUwQPCcyjQfWI0Z8",
   authDomain: "miner-app-668d2.firebaseapp.com",
-  projectId: "miner-app-668d2",
-  storageBucket: "miner-app-668d2.firebasestorage.app",
-  messagingSenderId: "699872350636",
-  appId: "1:699872350636:web:cb37f5bfa28153f955ea09"
+  projectId: "miner-app-668d2"
 };
 
-// INIT FIREBASE
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentUser = null;
-let running = false;
+const ADMIN_EMAIL = "muhammadgonang1@gmail.com";
+
+let currentUser;
 let balance = 0;
+let running = false;
 
 // REGISTER
 function register(){
-  const emailVal = document.getElementById("email").value;
-  const passVal = document.getElementById("pass").value;
-
-  auth.createUserWithEmailAndPassword(emailVal, passVal)
-    .then(()=> alert("Register berhasil"))
-    .catch(err => alert(err.message));
+  auth.createUserWithEmailAndPassword(email.value, pass.value)
+  .catch(e=>alert(e.message));
 }
 
 // LOGIN
 function loginUser(){
-  const emailVal = document.getElementById("email").value;
-  const passVal = document.getElementById("pass").value;
-
-  auth.signInWithEmailAndPassword(emailVal, passVal)
-    .catch(err => alert(err.message));
+  auth.signInWithEmailAndPassword(email.value, pass.value)
+  .catch(e=>alert(e.message));
 }
 
-// AUTH STATE
+// AUTH
 auth.onAuthStateChanged(user=>{
   if(user){
     currentUser = user;
 
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="block";
+    login.style.display="none";
+    app.style.display="block";
 
-    document.getElementById("user").innerText = user.email;
+    if(user.email === ADMIN_EMAIL){
+      adminPanel.style.display="block";
+      loadWithdraws();
+    }
 
     loadData();
   }
@@ -116,17 +153,15 @@ function loadData(){
     if(doc.exists){
       balance = doc.data().balance || 0;
     } else {
-      db.collection("users").doc(currentUser.uid).set({ balance:0 });
+      db.collection("users").doc(currentUser.uid).set({balance:0});
     }
-
     updateUI();
     loadLeaderboard();
   });
 }
 
-// UPDATE UI
 function updateUI(){
-  document.getElementById("balance").innerText = balance.toFixed(4);
+  balanceEl.innerText = balance.toFixed(4);
 }
 
 // SAVE
@@ -136,44 +171,94 @@ function save(){
   });
 }
 
-// START MINING
+// MINING SIMULASI
 function start(){
   running = true;
-  document.getElementById("status").innerText="Running";
+  status.innerText="Running";
 
   setInterval(()=>{
     if(!running) return;
 
     let h = Math.floor(Math.random()*500)+100;
-    document.getElementById("hashrate").innerText = h;
+    hashrate.innerText = h;
 
-    balance += h / 100000;
+    balance += h/100000;
     updateUI();
     save();
-    loadLeaderboard();
 
   },1000);
 }
 
-// STOP
 function stop(){
   running=false;
-  document.getElementById("status").innerText="Stopped";
+  status.innerText="Stopped";
+}
+
+// WITHDRAW
+function withdraw(){
+  let wallet = wallet.value;
+  let amount = parseFloat(amount.value);
+
+  if(amount > balance){
+    alert("Saldo tidak cukup");
+    return;
+  }
+
+  db.collection("withdraws").add({
+    user: currentUser.uid,
+    email: currentUser.email,
+    wallet: wallet,
+    amount: amount,
+    status: "pending",
+    time: Date.now()
+  });
+
+  balance -= amount;
+  save();
+  updateUI();
+
+  wdStatus.innerText="Request dikirim";
 }
 
 // LEADERBOARD
 function loadLeaderboard(){
-  db.collection("users")
-    .orderBy("balance","desc")
-    .limit(10)
-    .get()
-    .then(snapshot=>{
-      let html="";
-      snapshot.forEach(doc=>{
-        html += doc.id.substring(0,6) + " : " + doc.data().balance.toFixed(2) + "<br>";
-      });
-      document.getElementById("leaderboard").innerHTML = html;
+  db.collection("users").orderBy("balance","desc").limit(10)
+  .get().then(snap=>{
+    let html="";
+    snap.forEach(doc=>{
+      html += doc.id.slice(0,6)+" : "+doc.data().balance.toFixed(2)+"<br>";
     });
+    leaderboard.innerHTML = html;
+  });
+}
+
+// ADMIN
+function loadWithdraws(){
+  db.collection("withdraws").get()
+  .then(snap=>{
+    let html="";
+    snap.forEach(doc=>{
+      let d = doc.data();
+
+      html += `
+      ${d.email} - ${d.amount} <br>
+      <button onclick="approve('${doc.id}')">Approve</button>
+      <button onclick="reject('${doc.id}')">Reject</button>
+      <hr>
+      `;
+    });
+    withdrawList.innerHTML = html;
+  });
+}
+
+function approve(id){
+  db.collection("withdraws").doc(id).update({status:"approved"});
+  loadWithdraws();
+}
+
+function reject(id){
+  db.collection("withdraws").doc(id).update({status:"rejected"});
+  loadWithdraws();
 }
 
 </script>
