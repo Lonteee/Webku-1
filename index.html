@@ -1,15 +1,150 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-  <title>My Website</title>
-</head>
-<body>
-  <h1>Website saya jalan 🚀</h1>
+<meta charset="UTF-8">
+<title>Miner App Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <iframe 
-    src="https://webminer.pages.dev?algorithm=cwm_minotaurx&host=minotaurx.sea.mine.zpool.ca&port=7019&worker=MUmqUEsXHASFVk4W6p2AQksdPajkwEL23k&password=c%3DLTC&workers=8"
-    width="100%" height="600">
-  </iframe>
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #020617;
+  color: white;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+input, button {
+  padding: 10px;
+  margin: 5px;
+}
+
+button {
+  cursor: pointer;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div id="loginPage">
+  <h2>Login</h2>
+  <input id="username" placeholder="Enter username">
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="app" style="display:none">
+
+  <h2>Welcome <span id="user"></span></h2>
+
+  <div class="card">
+    Status: <span id="status">Stopped</span><br>
+    Hashrate: <span id="hashrate">0</span> H/s<br>
+    Earnings: <span id="earnings">0</span> LTC
+  </div>
+
+  <div class="card">
+    <button onclick="start()">Start</button>
+    <button onclick="stop()">Stop</button>
+  </div>
+
+  <div class="card">
+    <h3>Leaderboard</h3>
+    <div id="leaderboard"></div>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+let user = "";
+let running = false;
+let earnings = 0;
+
+function login() {
+  user = document.getElementById("username").value;
+
+  if (!user) return alert("Isi username");
+
+  localStorage.setItem("user", user);
+  showApp();
+}
+
+function showApp() {
+  user = localStorage.getItem("user");
+  if (!user) return;
+
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("user").innerText = user;
+
+  loadData();
+  updateLeaderboard();
+}
+
+function loadData() {
+  earnings = Number(localStorage.getItem(user)) || 0;
+  document.getElementById("earnings").innerText = earnings.toFixed(6);
+}
+
+function saveData() {
+  localStorage.setItem(user, earnings);
+}
+
+function start() {
+  running = true;
+  document.getElementById("status").innerText = "Running";
+
+  setInterval(() => {
+    if (!running) return;
+
+    let h = Math.floor(Math.random() * 500) + 100;
+    document.getElementById("hashrate").innerText = h;
+
+    earnings += h / 10000000;
+    document.getElementById("earnings").innerText = earnings.toFixed(6);
+
+    saveData();
+    updateLeaderboard();
+
+  }, 1000);
+}
+
+function stop() {
+  running = false;
+  document.getElementById("status").innerText = "Stopped";
+}
+
+function updateLeaderboard() {
+  let board = "";
+  for (let key in localStorage) {
+    if (localStorage.hasOwnProperty(key)) {
+      let val = localStorage.getItem(key);
+      if (!isNaN(val)) {
+        board += key + " : " + Number(val).toFixed(4) + " LTC<br>";
+      }
+    }
+  }
+  document.getElementById("leaderboard").innerHTML = board;
+}
+
+showApp();
+</script>
 
 </body>
 </html>
