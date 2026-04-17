@@ -3,147 +3,177 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Miner App Pro</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Miner Pro App</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #020617;
-  color: white;
-}
-
-.container {
-  padding: 20px;
-}
-
-.card {
-  background: #1e293b;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-}
-
-input, button {
-  padding: 10px;
-  margin: 5px;
-}
-
-button {
-  cursor: pointer;
-}
+body { background:#020617; color:white; font-family:Arial; padding:20px; }
+.card { background:#1e293b; padding:15px; border-radius:10px; margin:10px 0; }
+button { padding:10px; margin:5px; cursor:pointer; }
 </style>
 
 </head>
 
 <body>
 
-<div class="container">
+<h2>⚡ Miner Reward App</h2>
 
-<div id="loginPage">
-  <h2>Login</h2>
-  <input id="username" placeholder="Enter username">
+<div id="login">
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
   <button onclick="login()">Login</button>
 </div>
 
 <div id="app" style="display:none">
 
-  <h2>Welcome <span id="user"></span></h2>
+<div class="card">
+User: <span id="user"></span><br>
+Balance: <span id="balance">0</span> Coins
+</div>
 
-  <div class="card">
-    Status: <span id="status">Stopped</span><br>
-    Hashrate: <span id="hashrate">0</span> H/s<br>
-    Earnings: <span id="earnings">0</span> LTC
-  </div>
+<div class="card">
+Status: <span id="status">Stopped</span><br>
+Hashrate: <span id="hashrate">0</span>
+</div>
 
-  <div class="card">
-    <button onclick="start()">Start</button>
-    <button onclick="stop()">Stop</button>
-  </div>
+<button onclick="start()">Start</button> <button onclick="stop()">Stop</button>
 
-  <div class="card">
-    <h3>Leaderboard</h3>
-    <div id="leaderboard"></div>
-  </div>
-
+<div class="card">
+<h3>Leaderboard</h3>
+<div id="leaderboard"></div>
 </div>
 
 </div>
 
 <script>
-let user = "";
+// 🔥 PASTE CONFIG FIREBASE DI SINI
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDfcLi_OyL9lV50tQUEUwQPCcyjQfWI0Z8",
+  authDomain: "miner-app-668d2.firebaseapp.com",
+  projectId: "miner-app-668d2",
+  storageBucket: "miner-app-668d2.firebasestorage.app",
+  messagingSenderId: "699872350636",
+  appId: "1:699872350636:web:cb37f5bfa28153f955ea09",
+  measurementId: "G-4GL9NS5TJ1"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser;
 let running = false;
-let earnings = 0;
+let balance = 0;
 
-function login() {
-  user = document.getElementById("username").value;
-
-  if (!user) return alert("Isi username");
-
-  localStorage.setItem("user", user);
-  showApp();
+// REGISTER
+function register(){
+  auth.createUserWithEmailAndPassword(
+    email.value, pass.value
+  );
 }
 
-function showApp() {
-  user = localStorage.getItem("user");
-  if (!user) return;
-
-  document.getElementById("loginPage").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  document.getElementById("user").innerText = user;
-
-  loadData();
-  updateLeaderboard();
+// LOGIN
+function login(){
+  auth.signInWithEmailAndPassword(
+    email.value, pass.value
+  );
 }
 
-function loadData() {
-  earnings = Number(localStorage.getItem(user)) || 0;
-  document.getElementById("earnings").innerText = earnings.toFixed(6);
-}
-
-function saveData() {
-  localStorage.setItem(user, earnings);
-}
-
-function start() {
-  running = true;
-  document.getElementById("status").innerText = "Running";
-
-  setInterval(() => {
-    if (!running) return;
-
-    let h = Math.floor(Math.random() * 500) + 100;
-    document.getElementById("hashrate").innerText = h;
-
-    earnings += h / 10000000;
-    document.getElementById("earnings").innerText = earnings.toFixed(6);
-
-    saveData();
-    updateLeaderboard();
-
-  }, 1000);
-}
-
-function stop() {
-  running = false;
-  document.getElementById("status").innerText = "Stopped";
-}
-
-function updateLeaderboard() {
-  let board = "";
-  for (let key in localStorage) {
-    if (localStorage.hasOwnProperty(key)) {
-      let val = localStorage.getItem(key);
-      if (!isNaN(val)) {
-        board += key + " : " + Number(val).toFixed(4) + " LTC<br>";
-      }
-    }
+// AUTH STATE
+auth.onAuthStateChanged(user=>{
+  if(user){
+    currentUser = user;
+    login.style.display="none";
+    app.style.display="block";
+    document.getElementById("user").innerText = user.email;
+    loadData();
   }
-  document.getElementById("leaderboard").innerHTML = board;
+});
+
+// LOAD DATA
+function loadData(){
+  db.collection("users").doc(currentUser.uid).get()
+  .then(doc=>{
+    if(doc.exists){
+      balance = doc.data().balance || 0;
+    } else {
+      db.collection("users").doc(currentUser.uid).set({
+        balance:0
+      });
+    }
+    updateUI();
+    loadLeaderboard();
+  });
 }
 
-showApp();
+function updateUI(){
+  document.getElementById("balance").innerText = balance.toFixed(4);
+}
+
+// SAVE DATA
+function save(){
+  db.collection("users").doc(currentUser.uid).update({
+    balance: balance
+  });
+}
+
+// MINING SIMULATION + REWARD
+function start(){
+  running = true;
+  status.innerText="Running";
+
+  setInterval(()=>{
+    if(!running) return;
+
+    let h = Math.floor(Math.random()*500)+100;
+    hashrate.innerText = h;
+
+    // 💰 REWARD SYSTEM
+    balance += h / 100000;
+    updateUI();
+    save();
+
+    loadLeaderboard();
+
+  },1000);
+}
+
+function stop(){
+  running=false;
+  status.innerText="Stopped";
+}
+
+// LEADERBOARD GLOBAL
+function loadLeaderboard(){
+  db.collection("users").orderBy("balance","desc").limit(10)
+  .get()
+  .then(snapshot=>{
+    let html="";
+    snapshot.forEach(doc=>{
+      html += doc.id.substring(0,6) + " : " + doc.data().balance.toFixed(2) + "<br>";
+    });
+    leaderboard.innerHTML = html;
+  });
+}
 </script>
 
 </body>
