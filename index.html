@@ -12,7 +12,6 @@ const firebaseConfig = {
   appId: "1:699872350636:web:cb37f5bfa28153f955ea09"
 };
 
-// INIT
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -22,21 +21,14 @@ let currentUser;
 let running = false;
 let balance = 0;
 
-// REGISTER
 function register(){
-  auth.createUserWithEmailAndPassword(
-    email.value, pass.value
-  );
+  auth.createUserWithEmailAndPassword(email.value, pass.value);
 }
 
-// LOGIN
 function login(){
-  auth.signInWithEmailAndPassword(
-    email.value, pass.value
-  );
+  auth.signInWithEmailAndPassword(email.value, pass.value);
 }
 
-// AUTH STATE
 auth.onAuthStateChanged(user=>{
   if(user){
     currentUser = user;
@@ -47,16 +39,13 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-// LOAD DATA
 function loadData(){
   db.collection("users").doc(currentUser.uid).get()
   .then(doc=>{
     if(doc.exists){
       balance = doc.data().balance || 0;
     } else {
-      db.collection("users").doc(currentUser.uid).set({
-        balance:0
-      });
+      db.collection("users").doc(currentUser.uid).set({ balance:0 });
     }
     updateUI();
     loadLeaderboard();
@@ -67,14 +56,12 @@ function updateUI(){
   document.getElementById("balance").innerText = balance.toFixed(4);
 }
 
-// SAVE
 function save(){
   db.collection("users").doc(currentUser.uid).update({
     balance: balance
   });
 }
 
-// START
 function start(){
   running = true;
   document.getElementById("status").innerText="Running";
@@ -93,13 +80,11 @@ function start(){
   },1000);
 }
 
-// STOP
 function stop(){
   running=false;
   document.getElementById("status").innerText="Stopped";
 }
 
-// LEADERBOARD
 function loadLeaderboard(){
   db.collection("users").orderBy("balance","desc").limit(10)
   .get()
