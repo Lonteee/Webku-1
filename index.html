@@ -53,28 +53,29 @@ Hashrate: <span id="hashrate">0</span>
 
 <script>
 // 🔥 PASTE CONFIG FIREBASE DI SINI
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDfcLi_OyL9lV50tQUEUwQPCcyjQfWI0Z8",
-  authDomain: "miner-app-668d2.firebaseapp.com",
-  projectId: "miner-app-668d2",
-  storageBucket: "miner-app-668d2.firebasestorage.app",
-  messagingSenderId: "699872350636",
-  appId: "1:699872350636:web:cb37f5bfa28153f955ea09",
-  measurementId: "G-4GL9NS5TJ1"
-};
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyDfcLi_OyL9lV50tQUEUwQPCcyjQfWI0Z8",
+    authDomain: "miner-app-668d2.firebaseapp.com",
+    projectId: "miner-app-668d2",
+    storageBucket: "miner-app-668d2.firebasestorage.app",
+    messagingSenderId: "699872350636",
+    appId: "1:699872350636:web:cb37f5bfa28153f955ea09",
+    measurementId: "G-4GL9NS5TJ1"
+  };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
